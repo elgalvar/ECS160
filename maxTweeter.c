@@ -119,14 +119,26 @@ int getNameIndex(const char *line){
 		}
 	}
 	
+	//fixing the error pointed out by Elvis:
+	//Thank you! This error will cause incorrect output sometimes!
 	char field[MAXCHAR + 1] = {0};
-	if(strcmp(&line[last_comma_index + 1], "name") == 0){
+	strcpy(field, &line[last_comma_index + 1]);
+	stripQuote(field);
+	if(strcmp(field, "name") == 0){
 		//"name" column is the last column
 		return comma_num;
 	}
 
 	//no name found
 	invalid();
+
+	//fixing the error pointed out by Elvis:
+	//Here I don't know the correct way
+	//When the programs runs to the end of this function,
+	//it means no "name" is found.
+	//So we should call invalid() to exit.
+	//But anyway I add a return statement, which is never used.
+	return 0;
 }
 
 
