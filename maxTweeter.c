@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 //in C the conventional way to define a constant is by the #define macro
 //note: if we define a string, we should define it as char str[MAXCHAR + 1],
@@ -8,7 +9,7 @@
 #define MAXCHAR 1024
 #define MAXLINES 20000
 
-typedef struct{
+typedef struct {
 	char *name;
 	int count;	
 }Value;
@@ -314,6 +315,28 @@ int getValues(Value *value_array, const char *path) {
 	return num_vals;
 }
 
+// used as the function in qsort to compare elements
+// returns an integer to decide which element goes first in the array
+int comparator(const void *p, const void *q) {
+	const Value *leftValue = p;
+	const Value *rightValue = q;
+
+	// the greater of the two counts will be put first
+	return (rightValue->count - leftValue->count);
+}
+
+// prints out the top ten users with the largest number of tweets 
+// in descending order
+// TODO: check if the array only holds NULL elements
+void getTopTen(Value *values, int array_length) {
+	// second parameter should be the length of the actual array size
+	// to only sort values that are not equal to NULL
+	qsort((void*)values, array_length, sizeof(values[0]), comparator);
+	for(int i = 0; i < 10; i++) {
+		printf("%s: %d\n", values[i].name, values[i].count);
+	}
+}
+
 
 int main(int argc, char const *argv[]){	
 	if(argc < 1){
@@ -323,6 +346,7 @@ int main(int argc, char const *argv[]){
 	Value values[MAXLINES];
 	//argv[1] should be the path of the csv file
 	int array_length = getValues(values, argv[1]);
+	getTopTen(values, array_length);
 
 	for(int i = 0; i < array_length; i++){
 		free(values[i].name);
