@@ -17,7 +17,7 @@ typedef struct {
 //whenever the program encounters an invalid situation
 //just call this function
 void invalid(void){
-	printf("Invalid Input Format");
+	printf("Invalid Input Format\n");
 	exit(EXIT_SUCCESS);
 }
 
@@ -327,13 +327,23 @@ int comparator(const void *p, const void *q) {
 
 // prints out the top ten users with the largest number of tweets 
 // in descending order
-// TODO: check if the array only holds NULL elements
+// TODO: check if the array only holds NULL elements - cheked
+// checked
 void getTopTen(Value *values, int array_length) {
+	// if the values array is NULL then end the program
+	if(values[0].name == NULL) {
+		invalid();
+	}
 	// second parameter should be the length of the actual array size
 	// to only sort values that are not equal to NULL
 	qsort((void*)values, array_length, sizeof(values[0]), comparator);
 	for(int i = 0; i < 10; i++) {
-		printf("%s: %d\n", values[i].name, values[i].count);
+		// prints the name and count only when they're not NULL
+		if(values[i].name != NULL) {
+			printf("%s: %d\n", values[i].name, values[i].count);
+		} else {
+			printf("No Tweeter\n");
+		}
 	}
 }
 
