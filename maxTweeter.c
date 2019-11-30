@@ -72,8 +72,8 @@ void stripQuote(char *raw_field){
 
 //input: a line representing the header of the csv file
 //output: an integer representing the index of "name" column
-//TODO:do we need to check if other fields (apart from name field) are valid?
 int getNameIndex(const char *line){
+	
 	int length = strlen(line);
 	if(length < 4 || length > MAXCHAR){
 		//line should at least contain 4 chars: n, a, m and e
@@ -82,6 +82,10 @@ int getNameIndex(const char *line){
 	int last_comma_index = -1;
 	//the number of commas we have found
 	int comma_num = 0;
+	//has found the name column before
+	int has_found = 0;
+	//name column index
+	int name_col_index;
 	for(int i = 0; i < length; i++){
 		if(line[i] == ','){
 			//find one comma
@@ -98,7 +102,8 @@ int getNameIndex(const char *line){
 				if(strcmp(field, "name") == 0){
 					//we have found "name" column!
 					//it is the first column
-					return 0;
+					has_found = 1;
+					name_col_index = 0;
 				}
 				//update last_comma_index
 				last_comma_index = i;
@@ -111,7 +116,13 @@ int getNameIndex(const char *line){
 				stripQuote(field);
 				if(strcmp(field, "name") == 0){
 					//we have found "name" column
-					return comma_num - 1;
+					if(has_found == 1){
+						//we have found it before
+						invalid();
+					}
+
+					has_found = 1;
+					name_col_index = comma_num - 1;
 				}
 
 				//update last_comma_index
@@ -120,26 +131,23 @@ int getNameIndex(const char *line){
 		}
 	}
 	
-	//fixing the error pointed out by Elvis:
-	//Thank you! This error will cause incorrect output sometimes!
 	char field[MAXCHAR + 1] = {0};
 	strcpy(field, &line[last_comma_index + 1]);
 	stripQuote(field);
 	if(strcmp(field, "name") == 0){
 		//"name" column is the last column
-		return comma_num;
+		if(has_found == 1){
+			invalid();
+		}
+		name_col_index = comma_num;
+		has_found = 1;
 	}
 
-	//no name found
-	invalid();
-
-	//fixing the error pointed out by Elvis:
-	//Here I don't know the correct way
-	//When the programs runs to the end of this function,
-	//it means no "name" is found.
-	//So we should call invalid() to exit.
-	//But anyway I add a return statement, which is never used.
-	return 0;
+	if(has_found == 0){
+		invalid();
+		//no name column
+	}
+	return name_col_index;
 }
 
 
@@ -147,7 +155,7 @@ int getNameIndex(const char *line){
 //if line is empty or if there is anything else wrong
 //that prevents us from getting the nameid-th field
 //invalid() would be called
-//TODO: should an empty name be valid? Now my implementation answers yes
+//If the line ends with a comma and we are supposed to extract the field after it, it is an empty name
 void getName(int nameid, char *name, const char *line){
 	int length = strlen(line);
 	if(length == 0 || length > MAXLINES){
@@ -174,12 +182,12 @@ void getName(int nameid, char *name, const char *line){
 			}
 		}
 
-		/*if(line[cur_pos] == '\0'){
+		if(line[cur_pos] == '\0'){
 			//we have found enough commas
 			//but we have already reached the end
-			//TODO: should an empty name be valid?
-			invalid();
-		}*/
+			name[0] = '\0';
+			return;
+		}
 	}
 
 	char *pnext_comma = strchr(&line[cur_pos], ',');
@@ -199,7 +207,6 @@ void getName(int nameid, char *name, const char *line){
 
 
 //extract a line from stream
-//TODO: if the line has more than MAXCHAR characters, invalid() is called
 //TODO: what should we do if there is an empty line in the middle? Now my implementation just accepts it
 //this function will discard the end line character it meets
 void getLine(char *line, FILE *stream){
@@ -309,7 +316,6 @@ int getValues(Value *value_array, const char *path) {
 
 	if(fclose(stream) == EOF){
 		//close error
-		//TODO: file IO error is considered as invalid?
 		invalid();
 	}
 	return num_vals;
